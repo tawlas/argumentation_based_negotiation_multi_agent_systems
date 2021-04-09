@@ -5,7 +5,13 @@ sys.path.append('D:\Documents\Cours\syst_multiagent\mesa_preference\mesa')
 from communication.agent.CommunicatingAgent import CommunicatingAgent
 from communication.message.MessageService import MessageService
 
-from random import sample
+from communication.preferences.Preferences import Preferences
+from communication.preferences.CriterionName import CriterionName
+from communication.preferences.CriterionValue import CriterionValue 
+from communication.preferences.Item import Item 
+from communication.preferences.Value import Value
+
+from random import randrange
 
 class ArgumentAgent(CommunicatingAgent):
     """ TestAgent which inherit from CommunicatingAgent.
@@ -22,8 +28,13 @@ class ArgumentAgent(CommunicatingAgent):
 
     def generate_preferences(self):
         # To be completed
-        self.preferences = sample(self.model.get_list_items(), len(self.model.get_list_items()))
-    
+        self.preferences = Preferences()
+        self.preferences.set_criterion_name_list([CriterionName.PRODUCTION_COST, CriterionName.ENVIRONMENT_IMPACT,
+                                                  CriterionName.CONSUMPTION, CriterionName.DURABILITY, CriterionName.NOISE])
+        for it in self.model.get_list_items() :
+            for crit in self.preferences.get_criterion_name_list() :
+                self.preferences.add_criterion_value(CriterionValue(it, crit,Value(randrange(5))))
+     
 class ArgumentModel(Model):
     
     """ ArgumentModel which inherit from Model.
@@ -57,5 +68,3 @@ class ArgumentModel(Model):
 if __name__ == "__main__":
     argument_model = ArgumentModel()
     # To be completed
-    
-    argument_model.schedule.agents(1)
