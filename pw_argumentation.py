@@ -11,7 +11,7 @@ from communication.preferences.CriterionValue import CriterionValue
 from communication.preferences.Item import Item 
 from communication.preferences.Value import Value
 
-from random import randrange
+from random import randrange, shuffle
 
 class ArgumentAgent(CommunicatingAgent):
     """ TestAgent which inherit from CommunicatingAgent.
@@ -28,12 +28,12 @@ class ArgumentAgent(CommunicatingAgent):
 
     def generate_preferences(self):
         # To be completed
-        self.preferences = Preferences()
-        self.preferences.set_criterion_name_list([CriterionName.PRODUCTION_COST, CriterionName.ENVIRONMENT_IMPACT,
-                                                  CriterionName.CONSUMPTION, CriterionName.DURABILITY, CriterionName.NOISE])
+        self.preference = Preferences()
+        self.preference.set_criterion_name_list(shuffle([CriterionName.PRODUCTION_COST, CriterionName.ENVIRONMENT_IMPACT,
+                                                  CriterionName.CONSUMPTION, CriterionName.DURABILITY, CriterionName.NOISE]))
         for it in self.model.get_list_items() :
-            for crit in self.preferences.get_criterion_name_list() :
-                self.preferences.add_criterion_value(CriterionValue(it, crit,Value(randrange(5))))
+            for crit in self.preference.get_criterion_name_list() :
+                self.preference.add_criterion_value(CriterionValue(it, crit,Value(randrange(5))))
      
 class ArgumentModel(Model):
     
@@ -68,3 +68,18 @@ class ArgumentModel(Model):
 if __name__ == "__main__":
     argument_model = ArgumentModel()
     # To be completed
+    agent0 = argument_model.schedule.agents[0]
+    agent1 = argument_model.schedule.agents[1]
+
+    assert(agent0.get_name() == "alice")
+    assert(agent1.get_name() == "bob")
+    print("*     get_name() => OK")
+
+    agent0.send_message(Message("alice", "bob", MessagePerformative.PROPOSE, argument_model.get_list_items()[0]))
+    new_msg = agent1.get_new_messages()[0]
+    perf = new_msg.get_performative()
+    item = new_msg.get_content()
+    if agent1.preference.is_item_among_top_10_percent(item, argument_model.get_list_items()) :
+        agent1.send_message(Message("bob", "alice", MessagePerformative.ACCEPT, item))
+    else :
+        agent1.send_message(Message("bob", "alice", MessagePerformative.ASK_WHY, item))
