@@ -60,7 +60,7 @@ class ArgumentAgent(CommunicatingAgent):
                         self.list_items.remove(item)
                 
                 elif  performative == MessagePerformative.PROPOSE :
-                    if self.preference.is_item_among_top_10_percent(item, self.get_list_items()) :
+                    if self.preference.is_item_among_top_10_percent(item, self.model.get_list_items()) :
                         self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.ACCEPT, item))
                     else :
                         self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.ASK_WHY, item))
@@ -75,6 +75,7 @@ class ArgumentModel(Model):
     """
 
     def __init__(self):
+        super().__init__()
         self.schedule = RandomActivation(self)
         self.__messages_service = MessageService(self.schedule)
 
@@ -82,11 +83,11 @@ class ArgumentModel(Model):
 
         self.list_items = []
 
-        a = ArgumentAgent(next(), self, "alice")
+        a = ArgumentAgent(self.next_id(), self, "alice")
         a.generate_preferences()
         self.schedule.add(a)
 
-        b = ArgumentAgent(next(), self, "bob")
+        b = ArgumentAgent(self.next_id(), self, "bob")
         b.generate_preferences()
         self.schedule.add(b)
 
