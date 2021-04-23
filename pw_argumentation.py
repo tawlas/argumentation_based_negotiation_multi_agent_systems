@@ -67,6 +67,9 @@ class ArgumentAgent(CommunicatingAgent):
                 
                 elif performative == MessagePerformative.ACCEPT :
                     self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.COMMIT, item))
+                    
+                elif performative == MessagePerformative.ASK_WHY :
+                    self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.ARGUE, item))
 
 
 class ArgumentModel(Model):
