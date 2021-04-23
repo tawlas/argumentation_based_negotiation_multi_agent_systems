@@ -22,12 +22,16 @@ class ArgumentAgent(CommunicatingAgent):
     def __init__(self, unique_id, model, name):
         super().__init__(unique_id, model, name)
         self.preference = None
-
+        self.list_items = self.model.get_list_items()
+        
     def step(self):
         super().step()
 
     def get_preference(self):
         return self.preference
+    
+    def get_list_items(self):
+        return self.list_items
 
     def generate_preferences(self):
         # To be completed
@@ -38,6 +42,31 @@ class ArgumentAgent(CommunicatingAgent):
             for crit in self.preference.get_criterion_name_list():
                 self.preference.add_criterion_value(
                     CriterionValue(it, crit, Value(randrange(5))))
+     
+    def propose_item(self, item, list_dest) :
+        for dest in list_dest :
+            self.send_message(Message(self.get_name(), dest.get_name(), MessagePerformative.PROPOSE, item))
+    
+    def answer_messages(self) :
+        if len(self.get_new_messages()) > 0 :
+            for msg in self.get_new_messages() :
+                item = msg.get_content()
+                performative = msg.get_performative()
+                sender = msg.get_exp()
+                
+                if performative == MessagePerformative.COMMIT :
+                    if item in self.get_list_items() :
+                        self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.COMMIT, item))
+                        self.list_items.remove(item)
+                
+                elif  performative == MessagePerformative.PROPOSE :
+                    if self.preference.is_item_among_top_10_percent(item, self.get_list_items()) :
+                        self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.ACCEPT, item))
+                    else :
+                        self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.ASK_WHY, item))
+                
+                elif performative == MessagePerformative.ACCEPT :
+                    self.send_message(Message(self.get_name(), sender.get_name(), MessagePerformative.COMMIT, item))
 
 
 class ArgumentModel(Model):
